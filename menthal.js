@@ -1,84 +1,35 @@
-const GameStatus = {
-    Start: 0,
-    Playing: 1,
-}
-
-const Playing = {
-    Setup: 0,
-    Show: 1,
-    Ask: 2,
-    Wait: 3,
-    Evaluate: 4,
-    Correct: 5,
-    Incorrect: 6
-}
-
-const LEVELS = {
-    E: {
-        upperLimit: 9,
-        initTimeInS: 1,
-        calcTimeInS: 5,
-        toString: () => "EASY",
-        R: 0,
-        G: 200,
-        B: 0
-    },
-    M: {
-        upperLimit: 25,
-        initTimeInS: 1,
-        calcTimeInS: 3,
-        toString: () => "MEDIUM",
-        R: 200,
-        G: 200,
-        B: 0
-    },
-    H: {
-        upperLimit: 50,
-        initTimeInS: 1,
-        calcTimeInS: 2,
-        toString: () => "HARD",
-        R: 200,
-        G: 0,
-        B: 0
-    },
-    I: {
-        upperLimit: 99,
-        initTimeInS: .5,
-        calcTimeInS: 1,
-        toString: () => "IMPOSSIBLE",
-        R: 0,
-        G: 0,
-        B: 0
-    },
-}
-
 let canvasWidth;
 let canvasHeight;
+let onPC = isPC();
 
 let term, result, level, highScore;
 let userNum = 0, num = 0, score = 0, waitTimeout = 0;
 let gameStatus = GameStatus.Start, playingStatus = Playing.Setup;
 
-
-
-function setup() {
+function calculateWH() {
     const idealWidth = (4 / 5) * windowWidth;
     const idealHeight = (4 / 5) * windowHeight;
-    canvasWidth = idealWidth < 600 ? 600 : idealWidth;
-    canvasHeight = idealHeight < 600 ? 600 : idealHeight;
+    canvasWidth = idealWidth < minWidth ? minWidth : idealWidth;
+    canvasHeight = idealHeight < minHeight ? minHeight : idealHeight;
+}
+
+function setup() {
+    calculateWH();
     let canvas = createCanvas(canvasWidth, canvasHeight);
     canvas.style('display', 'block');
     textAlign(CENTER, CENTER);
     frameRate(10);
     level = getItem('level') ? LEVELS[getItem('level')] : LEVELS.E;
     highScore = getItem(`hs-${level.toString()[0]}`) ? getItem(`hs-${level.toString()[0]}`) : 0;
+
+    if(!onPC) {
+        alert(`Sorry, this page is not supported on phones and tablets yet.`)
+        noLoop();
+    }
 }
 
 function windowResized() {
-    const idealWidth = (4 / 5) * windowWidth;
-    const idealHeight = (4 / 5) * windowHeight;
-    canvasWidth = idealWidth < 600 ? 600 : idealWidth;
-    canvasHeight = idealHeight < 600 ? 600 : idealHeight;
+    calculateWH()
     resizeCanvas(canvasWidth, canvasHeight);
 }
 
@@ -95,8 +46,6 @@ function draw() {
             playGame();
             break;
     }
-
-
 }
 
 function showLevel() {
@@ -120,16 +69,20 @@ function showScore() {
 function displayStartPrompt() {
     fill(random(140, 240));
     textSize(60);
-    text('Press ↵ to play', (1 / 2) * canvasWidth, (1 / 2) * canvasHeight);
+    text('Press ↵ to start', (1 / 2) * canvasWidth, (1 / 2) * canvasHeight);
     fill(240);
     textSize(20);
-    text(`(${level})\n${level.initTimeInS} second${plr(level.initTimeInS)} to read the initial number,\n${level.calcTimeInS} second${plr(level.calcTimeInS)} to calculate the result.\nPress ${getOtherLevels()}`
+    text(`${howToChangeLevels()}`
         , (1 / 2) * canvasWidth, (.9) * canvasHeight);
 }
 
-function getOtherLevels() {
+function levelDetails() {
+    return `${level.initTimeInS} second${plr(level.initTimeInS)} to read the initial number,\n${level.calcTimeInS} second${plr(level.calcTimeInS)} to calculate the result.`
+}
+
+function howToChangeLevels() {
     const otherLevels = Object.values(LEVELS).filter(l => l.toString() != level.toString());
-    let levelsText = "";
+    let levelsText = "Press ";
     otherLevels.forEach(e => {
         levelsText += `${e.toString()[0]} for ${e.toString()}, `;
     })
