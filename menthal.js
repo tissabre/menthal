@@ -3,7 +3,7 @@ let canvasHeight;
 let onPC = isPC();
 
 let term, result, level, highScore;
-let userNum = 0, num = 0, score = 0, waitTimeout = 0;
+let userNum = 0, num = 0, score = 0, waitTimeout = 0, countDownTime = 0, timeRemaining = 0;
 let gameStatus = GameStatus.Start, playingStatus = Playing.Setup;
 
 function calculateWH() {
@@ -22,7 +22,7 @@ function setup() {
     level = getItem('level') ? LEVELS[getItem('level')] : LEVELS.E;
     highScore = getItem(`hs-${level.toString()[0]}`) ? getItem(`hs-${level.toString()[0]}`) : 0;
 
-    if(!onPC) {
+    if (!onPC) {
         alert(`Sorry, this page is not supported on phones and tablets yet.`)
         noLoop();
     }
@@ -57,13 +57,13 @@ function showLevel() {
 function showHighScore() {
     fill(200, 170, 0);
     textSize(20);
-    text(highScore, (.08) * canvasWidth, (.05) * canvasHeight);
+    text(`HS: ${highScore}`, (.08) * canvasWidth, (.05) * canvasHeight);
 }
 
 function showScore() {
     fill(200);
     textSize(20);
-    text(score, (.08) * canvasWidth, (.08) * canvasHeight);
+    text(`S: ${score}`, (.08) * canvasWidth, (.08) * canvasHeight);
 }
 
 function displayStartPrompt() {
@@ -105,6 +105,26 @@ function showTyped(val) {
     text(val, (1 / 2) * canvasWidth, (.75) * canvasHeight);
 }
 
+function showTimeRemaining() {
+    setColorBasedOnTimeRemaining();
+    textSize(50);
+    const seconds = timeRemaining / 1000;
+    text(+seconds.toFixed(1), (1 / 2) * canvasWidth, (.9) * canvasHeight)
+}
+
+function setColorBasedOnTimeRemaining() {
+    const calcTimeInMs = level.calcTimeInS * 1000;
+    if (timeRemaining > (2 / 3) * calcTimeInMs) {
+        fill(0, 200, 0);
+    }
+    else if (timeRemaining > (1 / 3) * calcTimeInMs) {
+        fill(200, 200, 0);
+    }
+    else {
+        fill(200, 0, 0);
+    }
+}
+
 function showIncorrect(val) {
     fill(200, 0, 0);
     textSize(90);
@@ -134,6 +154,9 @@ function playGame() {
 
             showNum(`+ ${term}`);
 
+            countDownTime = new Date();
+            countDownTime.setSeconds(countDownTime.getSeconds() + level.calcTimeInS);
+
             playingStatus = Playing.Wait;
             waitTimeout = setTimeout(() => {
                 playingStatus = Playing.Evaluate;
@@ -141,6 +164,10 @@ function playGame() {
             break;
         case Playing.Wait:
             showNum(`+ ${term}`);
+
+            timeRemaining = countDownTime.getTime() - new Date().getTime();
+            showTimeRemaining();
+
             if (userNum != 0) {
                 showTyped(userNum);
             }
