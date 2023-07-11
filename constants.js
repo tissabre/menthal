@@ -9,7 +9,7 @@ const isPC = () => {
     return true;
 };
 
-const minWidth = 400;
+const minWidth = 520;
 const minHeight = 400;
 
 const GameStatus = {
