@@ -223,11 +223,15 @@ function keyPressed(e) {
         storeItem('level', e.key.toUpperCase());
     }
     else if (playingStatus === Playing.Wait) {
+        const num0 = 48, keypad0 = 96;
         if (keyCode === 8) {    //backspace
             userNum = floor(userNum / 10);
         }
-        else if (keyCode >= 48 && keyCode <= 57) {
-            userNum = userNum * 10 + (keyCode - 48);
+        else if (keyCode >= num0 && keyCode <= num0 + 9) {
+            userNum = userNum * 10 + (keyCode - num0);
+        }
+        else if (keyCode >= keypad0 && keyCode <= keypad0 + 9) {
+            userNum = userNum * 10 + (keyCode - keypad0);
         }
     }
 }
